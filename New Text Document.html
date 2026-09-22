@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مكتبة الصوتيات والمنهج التعليمي المتكامل</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-16">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl py-5 px-4 sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-center sm:text-right w-full sm:w-auto">
+                <h1 class="text-xl sm:text-2xl font-bold flex items-center justify-center sm:justify-start gap-2">
+                    <i class="fas fa-headphones-alt bg-white/10 p-2 rounded-xl"></i> مكتبة الصوتيات التعليمية
+                </h1>
+                <p class="text-blue-200 text-xs sm:text-sm mt-1">متوافق بالكامل مع الموبايل واللابتوب (صوت، نطق، وتدريب)</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-center gap-2.5 w-full sm:w-auto">
+                <!-- أزرار سرعة الصوت -->
+                <div class="bg-blue-900/60 border border-blue-400/30 p-1.5 rounded-xl flex items-center gap-1.5 text-xs shadow-inner">
+                    <span class="text-blue-200 px-1 hidden md:inline"><i class="fas fa-gauge-high"></i> السرعة:</span>
+                    <button onclick="setSpeed(1.0)" id="speedNormalBtn" class="bg-white text-blue-900 px-2.5 py-1.5 rounded-lg font-bold transition shadow">طبيعي</button>
+                    <button onclick="setSpeed(0.6)" id="speedSlowBtn" class="bg-transparent text-blue-200 px-2.5 py-1.5 rounded-lg transition hover:bg-blue-800">هادئ</button>
+                </div>
+
+                <button onclick="openAddModal()" class="bg-white text-blue-800 px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm shadow hover:bg-blue-50 transition flex items-center gap-1.5">
+                    <i class="fas fa-plus"></i> إضافة كلمة
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto p-3 sm:p-4 mt-4">
+        
+        <!-- Search and Filter Bar -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 mb-5 flex flex-col gap-3">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="filterWords()" placeholder="ابحث عن كلمة، معنى، أو جملة..." class="w-full pr-11 pl-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <!-- تصنيفات متحركة وسلسة على الهواتف -->
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <button onclick="filterCategory('all')" class="cat-btn bg-blue-600 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition shadow-sm shrink-0">الكل</button>
+                <button onclick="filterCategory('أفراد العائلة')" class="cat-btn bg-slate-100 text-slate-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition hover:bg-slate-200 shrink-0">أفراد العائلة</button>
+                <button onclick="filterCategory('التحيات وأوقات اليوم')" class="cat-btn bg-slate-100 text-slate-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition hover:bg-slate-200 shrink-0">التحيات والوقت</button>
+                <button onclick="filterCategory('الصوتيات (ch)')" class="cat-btn bg-slate-100 text-slate-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition hover:bg-slate-200 shrink-0">الصوتيات (ch)</button>
+            </div>
+        </div>
+
+        <!-- Words Grid -->
+        <div id="wordsContainer" class="grid grid-cols-1 gap-4">
+            <!-- ستتم تعبئة البيانات برمجياً -->
+        </div>
+    </main>
+
+    <!-- Modal Add Word -->
+    <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-3xl p-5 sm:p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-800">إضافة كلمة جديدة للمكتبة</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 text-lg p-2"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="wordForm" onsubmit="addNewWord(event)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">الكلمة بالإنجليزية</label>
+                        <input type="text" id="newEn" required class="w-full p-2.5 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" placeholder="e.g. Family">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">المعنى بالعربية</label>
+                        <input type="text" id="newAr" required class="w-full p-2.5 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" placeholder="مثال: عائلة">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">رابط الصورة (Image URL)</label>
+                    <input type="url" id="newImg" required class="w-full p-2.5 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">جملة توضيحية (إنجليزي)</label>
+                    <input type="text" id="newSentenceEn" required class="w-full p-2.5 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" placeholder="e.g. I love my family.">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">ترجمة الجملة (عربي)</label>
+                    <input type="text" id="newSentenceAr" required class="w-full p-2.5 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 text-sm" placeholder="مثال: أنا أحب عائلتي.">
+                </div>
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">التصنيف</label>
+                    <select id="newCat" class="w-full p-2.5 bg-slate-50 border rounded-xl text-sm">
+                        <option value="أفراد العائلة">أفراد العائلة</option>
+                        <option value="التحيات وأوقات اليوم">التحيات وأوقات اليوم</option>
+                        <option value="الصوتيات (ch)">الصوتيات (ch)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-end gap-2">
+                    <button type="button" onclick="closeAddModal()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 rounded-xl text-slate-600 font-semibold text-sm hover:bg-slate-200">إلغاء</button>
+                    <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 shadow">حفظ الكلمة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Engine -->
+    <script>
+        let words = JSON.parse(localStorage.getItem('audio_library_curriculum_v2')) || [
+            { en: "Family", ar: "عائلة", img: "https://images.pexels.com/photos/1128318/pexels-photo-1128318.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "I love my family very much.", sentenceAr: "أنا بحب عائلتي قوي.", category: "أفراد العائلة" },
+            { en: "Grandpa", ar: "جَد", img: "https://images.pexels.com/photos/3831645/pexels-photo-3831645.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "My grandpa tells great stories.", sentenceAr: "جدي بيحكي حكايات حلوة.", category: "أفراد العائلة" },
+            { en: "Grandma", ar: "جدة", img: "https://images.pexels.com/photos/3768131/pexels-photo-3768131.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Grandma bakes delicious cookies.", sentenceAr: "الست الجدة بتخبز بسكوت لذيذ.", category: "أفراد العائلة" },
+            { en: "Parents", ar: "الوالدان", img: "https://images.pexels.com/photos/2253879/pexels-photo-2253879.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Respect your parents.", sentenceAr: "احترم بابا وماما.", category: "أفراد العائلة" },
+            { en: "Father", ar: "أب", img: "https://images.pexels.com/photos/3785104/pexels-photo-3785104.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "My father works hard.", sentenceAr: "أبي شغال بجد.", category: "أفراد العائلة" },
+            { en: "Mother", ar: "أم", img: "https://images.pexels.com/photos/3768114/pexels-photo-3768114.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Mother cooks healthy food.", sentenceAr: "ماما بتطبخ أكل صحي.", category: "أفراد العائلة" },
+            { en: "Brother", ar: "أخ", img: "https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "My brother plays football.", sentenceAr: "أخويا بيلعب كورة قدم.", category: "أفراد العائلة" },
+            { en: "Sister", ar: "أخت", img: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "My sister reads books.", sentenceAr: "أختي بتقرأ كتب.", category: "أفراد العائلة" },
+            { en: "Cousin", ar: "ابن العم / الخال", img: "https://images.pexels.com/photos/1416736/pexels-photo-1416736.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "I play with my cousin.", sentenceAr: "أنا بلعب مع ابن عمي.", category: "أفراد العائلة" },
+
+            { en: "Hello", ar: "أهلاً / مرحباً", img: "https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Hello, nice to meet you.", sentenceAr: "أهلاً، فرصة سعيدة.", category: "التحيات وأوقات اليوم" },
+            { en: "Good morning", ar: "صباح الخير", img: "https://images.pexels.com/photos/158179/knight-get-up-sunrise-sun-158179.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Good morning, teacher.", sentenceAr: "صباح الخير يا مستر.", category: "التحيات وأوقات اليوم" },
+            { en: "Good afternoon", ar: "طاب يومك / بعد الظهر", img: "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Good afternoon everyone.", sentenceAr: "مساء النور للكل.", category: "التحيات وأوقات اليوم" },
+            { en: "Good evening", ar: "مساء الخير", img: "https://images.pexels.com/photos/572897/pexels-photo-572897.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Good evening, my friends.", sentenceAr: "مساء الخير يا أصحاب.", category: "التحيات وأوقات اليوم" },
+            { en: "Good night", ar: "تصبح على خير", img: "https://images.pexels.com/photos/355465/pexels-photo-355465.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Good night, sleep well.", sentenceAr: "تصبح على خير، ونام كويس.", category: "التحيات وأوقات اليوم" },
+            { en: "Morning", ar: "الصباح", img: "https://images.pexels.com/photos/1000445/pexels-photo-1000445.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "I wake up early in the morning.", sentenceAr: "أنا بصحى بدري الصبح.", category: "التحيات وأوقات اليوم" },
+            { en: "Afternoon", ar: "بعد الظهر", img: "https://images.pexels.com/photos/2909069/pexels-photo-2909069.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "We study in the afternoon.", sentenceAr: "إحنا بنذاكر بعد الظهر.", category: "التحيات وأوقات اليوم" },
+            { en: "Evening", ar: "المساء", img: "https://images.pexels.com/photos/2486168/pexels-photo-2486168.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "We relax in the evening.", sentenceAr: "إحنا بنرتاح بالليل.", category: "التحيات وأوقات اليوم" },
+            { en: "Night", ar: "الليل", img: "https://images.pexels.com/photos/162335/pexels-photo-162335.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "The moon shines at night.", sentenceAr: "القمر بينور بليل.", category: "التحيات وأوقات اليوم" },
+
+            { en: "Beach", ar: "شاطئ", img: "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "We walk on the beach.", sentenceAr: "إحنا بنمشي على الشاطئ.", category: "الصوتيات (ch)" },
+            { en: "Chips", ar: "شيبسي (بطاطس)", img: "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "I like eating crispy chips.", sentenceAr: "أنا بحب أكل شيبسي مقرمش.", category: "الصوتيات (ch)" },
+            { en: "Chicken", ar: "دجاج / فراخ", img: "https://images.pexels.com/photos/616354/pexels-photo-616354.jpeg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Chicken is a healthy meal.", sentenceAr: "الفراخ وجبة صحية.", category: "الصوتيات (ch)" },
+            { en: "Children", ar: "أطفال / عيال", img: "https://images.pexels.com/photos/35537/child-children-happy-kid.jpg?auto=compress&cs=tinysrgb&w=400", sentenceEn: "Children play in the park.", sentenceAr: "العيال بيلعبوا في الجنينة.", category: "الصوتيات (ch)" }
+        ];
+
+        let currentFilter = 'all';
+        let currentSpeed = 1.0; 
+
+        function setSpeed(speed) {
+            currentSpeed = speed;
+            const normalBtn = document.getElementById('speedNormalBtn');
+            const slowBtn = document.getElementById('speedSlowBtn');
+
+            if (speed === 1.0) {
+                normalBtn.className = "bg-white text-blue-900 px-2.5 py-1.5 rounded-lg font-bold transition shadow";
+                slowBtn.className = "bg-transparent text-blue-200 px-2.5 py-1.5 rounded-lg transition hover:bg-blue-800";
+            } else {
+                slowBtn.className = "bg-white text-blue-900 px-2.5 py-1.5 rounded-lg font-bold transition shadow";
+                normalBtn.className = "bg-transparent text-blue-200 px-2.5 py-1.5 rounded-lg transition hover:bg-blue-800";
+            }
+        }
+
+        function speakText(text, lang) {
+            try {
+                let targetLang = lang === 'en' ? 'en' : 'ar-EG';
+                let audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${targetLang}&client=tw-ob`;
+                
+                const audio = new Audio(audioUrl);
+                audio.playbackRate = currentSpeed;
+                
+                audio.play().catch(error => {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.rate = currentSpeed;
+                        utterance.lang = lang === 'en' ? 'en-US' : 'ar-EG';
+                        window.speechSynthesis.speak(utterance);
+                    }
+                });
+            } catch (e) {
+                console.warn("خطأ في تشغيل الصوت");
+            }
+        }
+
+        function startPronunciationTest(targetText, elementId, lang) {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("خاصية الميكروفون غير متوفرة، يجدر استخدام متصفح Google Chrome على الموبايل أو الكمبيوتر.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.lang = lang === 'en' ? 'en-US' : 'ar-EG';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            const resultBox = document.getElementById(elementId);
+            resultBox.innerHTML = `<span class="text-amber-600 animate-pulse font-semibold"><i class="fas fa-microphone ml-1"></i> جارٍ الاستماع... انطق الكلمة بوضوح</span>`;
+
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript.trim();
+                const isMatch = speechResult.toLowerCase() === targetText.toLowerCase().replace(/[.,]/g, '');
+
+                if (isMatch) {
+                    resultBox.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fas fa-check-circle ml-1"></i> ممتاز! نطقك سليم (${speechResult})</span>`;
+                } else {
+                    resultBox.innerHTML = `<span class="text-rose-600 font-semibold"><i class="fas fa-times-circle ml-1"></i> سمعتُك: "${speechResult}" (المطلوب: ${targetText})، حاول مرة أخرى.</span>`;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                resultBox.innerHTML = `<span class="text-slate-500 text-xs">تعذر التقاط الصوت، يرجى المحاولة مرة أخرى والتأكد من السماح بإذن الميكروفون.</span>`;
+            };
+        }
+
+        function renderWords(list = words) {
+            const container = document.getElementById('wordsContainer');
+            container.innerHTML = "";
+
+            const filtered = currentFilter === 'all' ? list : list.filter(w => w.category === currentFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-400 py-12 bg-white rounded-2xl shadow-sm border"><i class="fas fa-info-circle text-2xl mb-2"></i><p>لا توجد نتائج مطابقة لبحثك.</p></div>`;
+                return;
+            }
+
+            filtered.forEach((item, index) => {
+                const testBoxId = `test_result_${index}`;
+                container.innerHTML += `
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 items-center transition hover:shadow-md">
+                        <!-- الصورة -->
+                        <div class="w-full sm:w-36 h-36 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-100 shadow-inner flex items-center justify-center">
+                            <img src="${item.img}" alt="${item.en}" class="w-full h-full object-cover" onerror="this.src='https://images.pexels.com/photos/256417/pexels-photo-256417.jpeg?auto=compress&cs=tinysrgb&w=400'">
+                        </div>
+
+                        <!-- المحتوى -->
+                        <div class="flex-1 w-full flex flex-col gap-3">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                <div>
+                                    <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-bold">${item.category}</span>
+                                    <div class="flex items-baseline gap-3 mt-2">
+                                        <h3 class="text-xl sm:text-2xl font-bold text-slate-800">${item.en}</h3>
+                                        <span class="text-base sm:text-lg font-semibold text-blue-600">${item.ar}</span>
+                                    </div>
+                                </div>
+                                <!-- أزرار نطق الكلمة -->
+                                <div class="flex gap-1.5 self-start sm:self-auto">
+                                    <button onclick="speakText('${item.en}', 'en')" title="نطق الكلمة إنجليزي" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1 text-xs font-bold">
+                                        <i class="fas fa-volume-up"></i> EN
+                                    </button>
+                                    <button onclick="speakText('${item.ar}', 'ar')" title="نطق المعنى عربي" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1 text-xs font-bold">
+                                        <i class="fas fa-volume-up"></i> AR
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- الجملة التوضيحية -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div>
+                                    <p class="text-xs sm:text-sm font-semibold text-slate-700">${item.sentenceEn}</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">${item.sentenceAr}</p>
+                                </div>
+                                <div class="flex gap-1.5 shrink-0 w-full sm:w-auto justify-end">
+                                    <button onclick="speakText('${item.sentenceEn}', 'en')" class="text-xs bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition font-semibold shadow-sm">
+                                        جملة EN
+                                    </button>
+                                    <button onclick="speakText('${item.sentenceAr}', 'ar')" class="text-xs bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg transition font-semibold shadow-sm">
+                                        جملة AR
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- اختبار النطق -->
+                            <div class="border-t border-slate-100 pt-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-blue-50/40 p-3 rounded-xl">
+                                <div class="text-xs w-full text-slate-600 font-medium text-center sm:text-right" id="${testBoxId}">
+                                    <i class="fas fa-microphone-lines text-blue-500 ml-1"></i> اضغط لاختبار نطقك الصوتي
+                                </div>
+                                <button onclick="startPronunciationTest('${item.en}', '${testBoxId}', 'en')" class="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow shrink-0">
+                                    <i class="fas fa-microphone"></i> اختبار النطق
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterWords() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = words.filter(w => 
+                w.en.toLowerCase().includes(query) || 
+                w.ar.includes(query) || 
+                w.sentenceEn.toLowerCase().includes(query)
+            );
+            renderWords(filtered);
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            event.target.classList.remove('bg-slate-100', 'text-slate-600');
+            event.target.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+            renderWords();
+        }
+
+        function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
+        function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
+
+        function addNewWord(e) {
+            e.preventDefault();
+            const en = document.getElementById('newEn').value.trim();
+            const ar = document.getElementById('newAr').value.trim();
+            const img = document.getElementById('newImg').value.trim();
+            const sentenceEn = document.getElementById('newSentenceEn->value').trim() || document.getElementById('newSentenceEn').value.trim();
+            const sentenceAr = document.getElementById('newSentenceAr').value.trim();
+            const category = document.getElementById('newCat').value;
+
+            words.push({ en, ar, img, sentenceEn, sentenceAr, category });
+            localStorage.setItem('audio_library_curriculum_v2', JSON.stringify(words));
+            
+            document.getElementById('wordForm').reset();
+            closeAddModal();
+            renderWords();
+        }
+
+        renderWords();
+    </script>
+</body>
+</html>
